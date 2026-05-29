@@ -64,10 +64,13 @@ export default function PlayPage() {
 
   const { markedCodes, markCell } = useBoard(mySlotId, id, myGrid)
 
-  // Redirigir al terminar
+  // Redirigir al resultado solo si ya se jugó (al menos 1 carta cantada)
+  // — evita falsa redirección con estado 'finished' del juego anterior
   useEffect(() => {
-    if (room?.status === 'finished') router.push(`/rooms/${id}/result`)
-  }, [room?.status, id, router])
+    if (room?.status === 'finished' && calledCards.length > 0) {
+      router.push(`/rooms/${id}/result`)
+    }
+  }, [room?.status, calledCards.length, id, router])
 
   if (isLoading || !userId) {
     return <div className="text-center py-16 text-gray-400">Cargando partida...</div>

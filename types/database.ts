@@ -100,6 +100,7 @@ export interface Database {
           name: string
           status: RoomStatus
           winning_patterns: string[]
+          completed_patterns: string[]
           max_boards: number
           invite_code: string
           created_at: string
@@ -112,6 +113,7 @@ export interface Database {
           name: string
           status?: RoomStatus
           winning_patterns?: string[]
+          completed_patterns?: string[]
           max_boards?: number
           invite_code?: string
           created_at?: string
@@ -120,10 +122,11 @@ export interface Database {
         Update: {
           id?: string
           owner_id?: string
-          host_id?: string
+          host_id?: string | null
           name?: string
           status?: RoomStatus
           winning_patterns?: string[]
+          completed_patterns?: string[]
           max_boards?: number
           invite_code?: string
           created_at?: string

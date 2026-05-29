@@ -67,10 +67,10 @@ export async function POST(
     .update({ shuffled_deck: shuffled, current_index: 0, deck_status: 'ready', updated_at: new Date().toISOString() })
     .eq('room_id', id)
 
-  // 5. Volver la sala a lobby (para que cambien patrones y tableros si quieren)
+  // 5. Volver a lobby y resetear patrones completados
   await admin
     .from('rooms')
-    .update({ status: 'lobby', ended_at: null })
+    .update({ status: 'lobby', ended_at: null, completed_patterns: [] })
     .eq('id', id)
 
   // 6. Consumir 1 crédito
@@ -79,6 +79,5 @@ export async function POST(
     .update({ games_used: sub.games_used + 1, updated_at: new Date().toISOString() })
     .eq('user_id', room.owner_id)
 
-  // La sala queda en lobby — los jugadores verán el código para volver
   return NextResponse.json({ ok: true, message: 'Nueva ronda lista' })
 }
