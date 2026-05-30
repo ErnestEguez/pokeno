@@ -97,3 +97,15 @@ export interface RealtimeEvent {
   type: RealtimeEventType
   payload?: Record<string, unknown>
 }
+
+// Payload del resultado de un reclamo (broadcast claim_result)
+export interface ClaimResultPayload {
+  valid: boolean
+  slot_id: string
+  pattern: string
+  winner_label?: string
+  winner_id?: string
+  game_over?: boolean
+  completed_patterns?: string[]
+  remaining_patterns?: string[]
+}

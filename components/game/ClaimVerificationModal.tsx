@@ -27,11 +27,9 @@ export function ClaimVerificationModal({ roomId, slotId, availablePatterns, onCl
       })
       const data = await res.json()
       if (data.valid) {
-        const remaining = (data.remaining_patterns ?? []) as string[]
-        const msg = remaining.length > 0
-          ? `¡${PATTERN_LABELS[selectedPattern as WinningPattern]} ganado! Continúan: ${remaining.map((p: string) => PATTERN_LABELS[p as WinningPattern] ?? p).join(', ')}`
-          : `¡Pokeno! Ganaste ${PATTERN_LABELS[selectedPattern as WinningPattern]}. ¡Ronda terminada!`
-        setResult({ valid: true, message: msg })
+        // El resultado válido se muestra a todos via ClaimResultBanner; cerrar este modal
+        onClose()
+        return
       } else {
         setResult({ valid: false, message: 'El patrón no está completo aún. ¡Sigue marcando!' })
       }

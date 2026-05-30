@@ -11,6 +11,7 @@ import { CalledCardDisplay } from '@/components/game/CalledCardDisplay'
 import { CardHistory } from '@/components/game/CardHistory'
 import { PatternIndicator } from '@/components/game/PatternIndicator'
 import { ClaimButton } from '@/components/game/ClaimButton'
+import { ClaimResultBanner } from '@/components/game/ClaimResultBanner'
 import { TakeHostButton } from '@/components/host/TakeHostButton'
 import { createClient } from '@/lib/supabase/client'
 import type { RoomSlotRow, BoardTemplateRow } from '@/types/database'
@@ -33,7 +34,7 @@ export default function PlayPage() {
     })
   }, [])
 
-  const { room, slots, calledCards, hostId, claimInProgress, isLoading, refetch } = useRoom(id)
+  const { room, slots, calledCards, hostId, claimInProgress, claimResult, dismissClaim, isLoading, refetch } = useRoom(id)
 
   // Polling de respaldo cada 4 s
   useEffect(() => {
@@ -219,6 +220,15 @@ export default function PlayPage() {
           )}
         </div>
       </div>
+
+      {/* Banner de resultado de reclamo — visible para todos los jugadores */}
+      {claimResult && (
+        <ClaimResultBanner
+          result={claimResult}
+          isHost={isHost}
+          onContinue={dismissClaim}
+        />
+      )}
     </div>
   )
 }

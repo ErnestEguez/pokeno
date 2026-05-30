@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRealtime } from './useRealtime'
 import type { RoomRow, RoomSlotRow, CalledCardRow, RoomDeckRow } from '@/types/database'
+import type { ClaimResultPayload } from '@/types/game'
 
 interface RoomState {
   room: RoomRow | null
@@ -11,6 +12,7 @@ interface RoomState {
   deckStatus: string | null
   hostId: string | null
   claimInProgress: boolean
+  claimResult: ClaimResultPayload | null
   isLoading: boolean
   error: string | null
 }
@@ -23,10 +25,10 @@ export function useRoom(roomId: string) {
     deckStatus: null,
     hostId: null,
     claimInProgress: false,
+    claimResult: null,
     isLoading: true,
     error: null,
   })
-
 
   const fetchState = useCallback(async () => {
     if (!roomId) return
@@ -41,6 +43,7 @@ export function useRoom(roomId: string) {
         deckStatus: (data.deck as RoomDeckRow | null)?.deck_status ?? null,
         hostId: data.room?.host_id ?? null,
         claimInProgress: prev.claimInProgress,
+        claimResult: prev.claimResult,
         isLoading: false,
         error: null,
       }))
@@ -52,6 +55,10 @@ export function useRoom(roomId: string) {
   useEffect(() => {
     fetchState()
   }, [fetchState])
+
+  const dismissClaim = useCallback(() => {
+    setState(prev => ({ ...prev, claimInProgress: false, claimResult: null }))
+  }, [])
 
   useRealtime(roomId, {
     game_started: () => {
@@ -90,6 +97,8 @@ export function useRoom(roomId: string) {
         ...prev,
         room: prev.room ? { ...prev.room, status: 'finished' } : null,
         deckStatus: 'done',
+        claimInProgress: false,
+        claimResult: null,
       }))
     },
     host_changed: (payload) => {
@@ -103,13 +112,21 @@ export function useRoom(roomId: string) {
     claim_submitted: () => {
       setState(prev => ({ ...prev, claimInProgress: true }))
     },
-    claim_result: () => {
-      setState(prev => ({ ...prev, claimInProgress: false }))
+    claim_result: (payload) => {
+      const result = payload as unknown as ClaimResultPayload
+      if (result.valid) {
+        // Reclamo válido: guardar resultado y mantener la cantada pausada
+        // hasta que el host presione "Continuar"
+        setState(prev => ({ ...prev, claimResult: result }))
+      } else {
+        // Reclamo inválido: solo el reclamante ve el error en su modal; reanudar cantada
+        setState(prev => ({ ...prev, claimInProgress: false }))
+      }
     },
     slot_taken: () => {
       fetchState()
     },
   })
 
-  return { ...state, refetch: fetchState }
+  return { ...state, refetch: fetchState, dismissClaim }
 }
