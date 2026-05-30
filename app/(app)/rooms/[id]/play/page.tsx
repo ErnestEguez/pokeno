@@ -59,10 +59,31 @@ export default function PlayPage() {
     ? (slots as SlotWithTemplate[]).find(s => s.slot_label === userEmail)
     : undefined
 
-  const myGrid   = mySlot?.board_template?.card_grid ?? null
-  const mySlotId = mySlot?.id ?? ''
+  const myGrid      = mySlot?.board_template?.card_grid ?? null
+  const mySlotId    = mySlot?.id ?? ''
+  const myBoardNum  = mySlot?.board_template?.board_number ?? null
 
   const { markedCodes, markCell } = useBoard(mySlotId, id, myGrid)
+
+  const [columnLabels, setColumnLabels] = useState<string[]>([])
+  const [rowLabels, setRowLabels]       = useState<string[]>([])
+
+  useEffect(() => {
+    if (!myBoardNum) return
+    fetch(`/api/board-labels?board_number=${myBoardNum}`)
+      .then(r => r.json())
+      .then((data: { tipo: string; posicion: number; texto: string }[]) => {
+        const cols = Array(5).fill('')
+        const rows = Array(5).fill('')
+        for (const item of data) {
+          if (item.tipo === 'columna') cols[item.posicion - 1] = item.texto
+          if (item.tipo === 'fila')    rows[item.posicion - 1] = item.texto
+        }
+        setColumnLabels(cols)
+        setRowLabels(rows)
+      })
+      .catch(() => {})
+  }, [myBoardNum])
 
   // Redirigir al resultado solo si ya se jugó (al menos 1 carta cantada)
   // — evita falsa redirección con estado 'finished' del juego anterior
@@ -182,6 +203,8 @@ export default function PlayPage() {
                 grid={myGrid}
                 markedCodes={markedCodes}
                 onCellClick={markCell}
+                columnLabels={columnLabels}
+                rowLabels={rowLabels}
               />
               <div className="mt-3">
                 <ClaimButton roomId={id} slotId={mySlotId} availablePatterns={patterns} />
