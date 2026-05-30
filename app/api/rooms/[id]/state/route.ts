@@ -17,7 +17,7 @@ export async function GET(
 
   // Snapshot completo para reconexión.
   // Los slots usan admin para que RLS en board_templates no bloquee board_number.
-  const [roomResult, deckResult, slotsResult, calledResult] = await Promise.all([
+  const [roomResult, deckResult, slotsResult, calledResult, winsResult] = await Promise.all([
     supabase.from('rooms').select('*').eq('id', id).single(),
     admin.from('room_decks').select('*').eq('room_id', id).single(),
     admin.from('room_slots').select(`
@@ -30,6 +30,12 @@ export async function GET(
       .select('*')
       .eq('room_id', id)
       .order('call_order', { ascending: true }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin as any)
+      .from('room_wins')
+      .select('id, pattern, winner_label, created_at')
+      .eq('room_id', id)
+      .order('created_at', { ascending: true }),
   ])
 
   if (roomResult.error || !roomResult.data) {
@@ -41,5 +47,6 @@ export async function GET(
     deck: deckResult.data,
     slots: slotsResult.data ?? [],
     called_cards: calledResult.data ?? [],
+    winners: winsResult.data ?? [],
   })
 }

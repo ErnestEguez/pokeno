@@ -107,6 +107,10 @@ export async function POST(
   const winnerLabel = slotData?.slot_label ?? 'Jugador'
   const newCompleted = [...completedPatterns, pattern]
 
+  // Registrar el ganador en la tabla room_wins
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (admin as any).from('room_wins').insert({ room_id: id, pattern, winner_label: winnerLabel })
+
   // ¿Ya se ganaron TODOS los patrones seleccionados?
   const allPatternsWon = winningPatterns.every(p => newCompleted.includes(p))
 

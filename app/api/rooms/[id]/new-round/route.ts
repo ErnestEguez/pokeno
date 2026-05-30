@@ -54,8 +54,10 @@ export async function POST(
   // 1. Baraja nuevo mazo
   const shuffled = shuffleDeck(STANDARD_DECK).map(c => c.code)
 
-  // 2. Borrar cartas cantadas
+  // 2. Borrar cartas cantadas y ganadores de la ronda anterior
   await admin.from('called_cards').delete().eq('room_id', id)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (admin as any).from('room_wins').delete().eq('room_id', id)
 
   // 3. Borrar marcas y slots de la ronda anterior
   // (ON DELETE CASCADE en marked_cells → slot borra sus marcas automáticamente)

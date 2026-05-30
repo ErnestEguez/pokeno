@@ -5,6 +5,13 @@ import { useRealtime } from './useRealtime'
 import type { RoomRow, RoomSlotRow, CalledCardRow, RoomDeckRow } from '@/types/database'
 import type { ClaimResultPayload } from '@/types/game'
 
+export interface RoomWin {
+  id: string
+  pattern: string
+  winner_label: string
+  created_at: string
+}
+
 interface RoomState {
   room: RoomRow | null
   slots: RoomSlotRow[]
@@ -13,6 +20,7 @@ interface RoomState {
   hostId: string | null
   claimInProgress: boolean
   claimResult: ClaimResultPayload | null
+  winners: RoomWin[]
   isLoading: boolean
   error: string | null
 }
@@ -26,6 +34,7 @@ export function useRoom(roomId: string) {
     hostId: null,
     claimInProgress: false,
     claimResult: null,
+    winners: [],
     isLoading: true,
     error: null,
   })
@@ -44,6 +53,7 @@ export function useRoom(roomId: string) {
         hostId: data.room?.host_id ?? null,
         claimInProgress: prev.claimInProgress,
         claimResult: prev.claimResult,
+        winners: data.winners ?? [],
         isLoading: false,
         error: null,
       }))

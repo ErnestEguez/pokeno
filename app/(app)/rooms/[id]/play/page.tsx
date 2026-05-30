@@ -12,6 +12,7 @@ import { CardHistory } from '@/components/game/CardHistory'
 import { PatternIndicator } from '@/components/game/PatternIndicator'
 import { ClaimButton } from '@/components/game/ClaimButton'
 import { ClaimResultBanner } from '@/components/game/ClaimResultBanner'
+import { WinnersList } from '@/components/game/WinnersList'
 import { TakeHostButton } from '@/components/host/TakeHostButton'
 import { createClient } from '@/lib/supabase/client'
 import type { RoomSlotRow, BoardTemplateRow } from '@/types/database'
@@ -34,7 +35,7 @@ export default function PlayPage() {
     })
   }, [])
 
-  const { room, slots, calledCards, hostId, claimInProgress, claimResult, dismissClaim, isLoading, refetch } = useRoom(id)
+  const { room, slots, calledCards, hostId, claimInProgress, claimResult, winners, dismissClaim, isLoading, refetch } = useRoom(id)
 
   // Polling cada 1 s — detecta pausa por POKENO en ~1 segundo
   useEffect(() => {
@@ -196,7 +197,7 @@ export default function PlayPage() {
           )}
         </div>
 
-        {/* ── COLUMNA DERECHA: tablero ───────────────────────────────────── */}
+        {/* ── COLUMNA CENTRO: tablero ───────────────────────────────────── */}
         <div className="flex-1 min-w-0">
           {myGrid ? (
             <>
@@ -222,6 +223,11 @@ export default function PlayPage() {
                 : 'No tienes un tablero en esta sala'}
             </div>
           )}
+        </div>
+
+        {/* ── COLUMNA DERECHA: ganadores ─────────────────────────────────── */}
+        <div className="flex-shrink-0" style={{ width: 150 }}>
+          <WinnersList winners={winners} />
         </div>
       </div>
 
