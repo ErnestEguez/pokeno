@@ -10,7 +10,7 @@ interface Props {
   availablePatterns: string[]
   markedCodes: Set<string>
   onClose: () => void
-  onClaimSuccess: () => void
+  onClaimSuccess: (winnerLabel: string, pattern: string) => void
 }
 
 export function ClaimVerificationModal({ roomId, slotId, availablePatterns, markedCodes, onClose, onClaimSuccess }: Props) {
@@ -35,7 +35,7 @@ export function ClaimVerificationModal({ roomId, slotId, availablePatterns, mark
       })
       const data = await res.json()
       if (data.valid) {
-        onClaimSuccess()
+        onClaimSuccess(data.winner_label ?? '', data.pattern ?? selectedPattern)
         return
       } else {
         setResult({ valid: false, message: data.error ?? 'El patrón no está completo aún. ¡Sigue marcando!' })

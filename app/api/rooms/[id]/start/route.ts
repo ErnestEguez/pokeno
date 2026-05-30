@@ -25,9 +25,10 @@ export async function POST(
     return NextResponse.json({ error: 'La sala no está en lobby' }, { status: 409 })
   }
 
+  // Resetear estado de ronda anterior al iniciar
   await admin
     .from('rooms')
-    .update({ status: 'playing' })
+    .update({ status: 'playing', completed_patterns: [], ended_at: null })
     .eq('id', id)
 
   await admin

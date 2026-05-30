@@ -223,7 +223,13 @@ export default function PlayPage() {
                 rowLabels={rowLabels}
               />
               <div className="mt-3">
-                <ClaimButton roomId={id} slotId={mySlotId} availablePatterns={patterns} markedCodes={markedCodes} />
+                <ClaimButton
+                  roomId={id}
+                  slotId={mySlotId}
+                  availablePatterns={patterns}
+                  markedCodes={markedCodes}
+                  onWinAnnounce={announceWinner}
+                />
               </div>
             </>
           ) : (

@@ -8,9 +8,10 @@ interface Props {
   slotId: string
   availablePatterns: string[]
   markedCodes: Set<string>
+  onWinAnnounce: (winnerLabel: string, pattern: string) => void
 }
 
-export function ClaimButton({ roomId, slotId, availablePatterns, markedCodes }: Props) {
+export function ClaimButton({ roomId, slotId, availablePatterns, markedCodes, onWinAnnounce }: Props) {
   const [showModal, setShowModal] = useState(false)
   const [claimSucceeded, setClaimSucceeded] = useState(false)
   // Rastrear si ESTE cliente fue quien pausó la sala
@@ -37,10 +38,10 @@ export function ClaimButton({ roomId, slotId, availablePatterns, markedCodes }: 
     setShowModal(false)
   }
 
-  function handleClaimSuccess() {
-    // Reclamo válido — el host reanuda manualmente con "Continuar cantada" o "Reanudar"
+  function handleClaimSuccess(winnerLabel: string, pattern: string) {
     setClaimSucceeded(true)
     setShowModal(false)
+    onWinAnnounce(winnerLabel, pattern)
   }
 
   return (
