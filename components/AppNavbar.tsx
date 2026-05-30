@@ -30,6 +30,9 @@ export function AppNavbar({ displayName, gamesTotal, gamesUsed }: Props) {
 
         <div className="flex items-center gap-3">
           <SubscriptionBadge gamesTotal={gamesTotal} gamesUsed={gamesUsed} />
+          <Link href="/manual" className="text-sm text-gray-500 hover:text-blue-600 transition hidden sm:block">
+            Manual
+          </Link>
           <span className="text-sm text-gray-600 hidden sm:block">{displayName}</span>
           <button
             onClick={handleLogout}
