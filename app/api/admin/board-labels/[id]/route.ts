@@ -4,11 +4,12 @@ import { requireAdminApi } from '@/lib/adminGuard'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { error } = await requireAdminApi()
   if (error) return error
 
+  const { id } = await params
   const body = await request.json()
   const { texto } = body
 
@@ -21,7 +22,7 @@ export async function PUT(
   const { data, error: dbError } = await admin
     .from('board_labels')
     .update({ texto })
-    .eq('id', params.id)
+    .eq('id', id)
     .select()
     .single()
 
@@ -38,17 +39,18 @@ export async function PUT(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { error } = await requireAdminApi()
   if (error) return error
 
+  const { id } = await params
   const admin = createAdminClient()
 
   const { error: dbError } = await admin
     .from('board_labels')
     .delete()
-    .eq('id', params.id)
+    .eq('id', id)
 
   if (dbError) {
     return NextResponse.json({ error: dbError.message }, { status: 500 })
