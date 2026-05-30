@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient()
@@ -16,7 +17,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'board_number es requerido' }, { status: 400 })
   }
 
-  const { data, error } = await supabase
+  // Usar admin para evitar que RLS bloquee la lectura de etiquetas a cualquier usuario
+  const admin = createAdminClient()
+  const { data, error } = await admin
     .from('board_labels')
     .select('tipo, posicion, texto')
     .eq('board_number', parseInt(boardNumber, 10))

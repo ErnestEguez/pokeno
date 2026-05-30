@@ -17,8 +17,8 @@ export async function broadcastRoomEvent(roomId: string, event: RealtimeEvent) {
       body: JSON.stringify({
         messages: [{
           topic: `room:${roomId}`,
-          event: 'broadcast',
-          payload: { type: event.type, ...(event.payload ?? {}) },
+          event: event.type,
+          payload: event.payload ?? {},
         }],
       }),
     })
