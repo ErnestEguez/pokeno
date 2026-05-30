@@ -45,6 +45,7 @@ export function useRoom(roomId: string) {
       const res = await fetch(`/api/rooms/${roomId}/state`)
       if (!res.ok) throw new Error('Error al cargar la sala')
       const data = await res.json()
+      const dbWinners = (data.winners ?? []) as RoomWin[]
       setState(prev => ({
         room: data.room,
         slots: data.slots,
@@ -53,7 +54,8 @@ export function useRoom(roomId: string) {
         hostId: data.room?.host_id ?? null,
         claimInProgress: prev.claimInProgress,
         claimResult: prev.claimResult,
-        winners: data.winners ?? [],
+        // Si la DB trae ganadores, usarlos. Si no (tabla sin migrar), conservar los acumulados por realtime/API
+        winners: dbWinners.length > 0 ? dbWinners : prev.winners,
         isLoading: false,
         error: null,
       }))
@@ -68,6 +70,21 @@ export function useRoom(roomId: string) {
 
   const dismissClaim = useCallback(() => {
     setState(prev => ({ ...prev, claimInProgress: false, claimResult: null }))
+  }, [])
+
+  const addLocalWinner = useCallback((pattern: string, winnerLabel: string) => {
+    setState(prev => {
+      if (prev.winners.some(w => w.pattern === pattern && w.winner_label === winnerLabel)) return prev
+      return {
+        ...prev,
+        winners: [...prev.winners, {
+          id: crypto.randomUUID(),
+          pattern,
+          winner_label: winnerLabel,
+          created_at: new Date().toISOString(),
+        }],
+      }
+    })
   }, [])
 
   useRealtime(roomId, {
@@ -128,11 +145,21 @@ export function useRoom(roomId: string) {
     claim_result: (payload) => {
       const result = payload as unknown as ClaimResultPayload
       if (result.valid) {
-        // Reclamo válido: guardar resultado y mantener la cantada pausada
-        // hasta que el host presione "Continuar"
-        setState(prev => ({ ...prev, claimResult: result }))
+        setState(prev => {
+          const newWin: RoomWin = {
+            id: crypto.randomUUID(),
+            pattern: result.pattern,
+            winner_label: result.winner_label ?? 'Jugador',
+            created_at: new Date().toISOString(),
+          }
+          const alreadyIn = prev.winners.some(w => w.pattern === result.pattern && w.winner_label === newWin.winner_label)
+          return {
+            ...prev,
+            claimResult: result,
+            winners: alreadyIn ? prev.winners : [...prev.winners, newWin],
+          }
+        })
       } else {
-        // Reclamo inválido: solo el reclamante ve el error en su modal; reanudar cantada
         setState(prev => ({ ...prev, claimInProgress: false }))
       }
     },
@@ -141,5 +168,5 @@ export function useRoom(roomId: string) {
     },
   })
 
-  return { ...state, refetch: fetchState, dismissClaim }
+  return { ...state, refetch: fetchState, dismissClaim, addLocalWinner }
 }

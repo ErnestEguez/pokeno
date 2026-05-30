@@ -35,7 +35,7 @@ export default function PlayPage() {
     })
   }, [])
 
-  const { room, slots, calledCards, hostId, claimInProgress, claimResult, winners, dismissClaim, isLoading, refetch } = useRoom(id)
+  const { room, slots, calledCards, hostId, claimInProgress, claimResult, winners, dismissClaim, addLocalWinner, isLoading, refetch } = useRoom(id)
 
   // Polling cada 1 s — detecta pausa por POKENO en ~1 segundo
   useEffect(() => {
@@ -228,7 +228,10 @@ export default function PlayPage() {
                   slotId={mySlotId}
                   availablePatterns={patterns}
                   markedCodes={markedCodes}
-                  onWinAnnounce={announceWinner}
+                  onWinAnnounce={(winnerLabel, pattern) => {
+                    announceWinner(winnerLabel, pattern)
+                    addLocalWinner(pattern, winnerLabel)
+                  }}
                 />
               </div>
             </>
