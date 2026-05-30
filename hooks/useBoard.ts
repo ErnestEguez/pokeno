@@ -1,11 +1,23 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { BoardGrid } from '@/types/game'
 import { createClient } from '@/lib/supabase/client'
 
 export function useBoard(slotId: string, roomId: string, boardGrid: BoardGrid | null) {
   const [markedCodes, setMarkedCodes] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    if (!slotId) return
+    createClient()
+      .from('marked_cells')
+      .select('card_code')
+      .eq('slot_id', slotId)
+      .eq('is_marked', true)
+      .then(({ data }) => {
+        if (data) setMarkedCodes(new Set(data.map(c => c.card_code)))
+      })
+  }, [slotId])
 
   // Toggle: marca si no está marcada, desmarca si ya lo está
   const markCell = useCallback(async (code: string) => {

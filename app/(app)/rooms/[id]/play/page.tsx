@@ -33,7 +33,7 @@ export default function PlayPage() {
     })
   }, [])
 
-  const { room, slots, calledCards, hostId, isLoading, refetch } = useRoom(id)
+  const { room, slots, calledCards, hostId, claimInProgress, isLoading, refetch } = useRoom(id)
 
   // Polling de respaldo cada 4 s
   useEffect(() => {
@@ -141,10 +141,10 @@ export default function PlayPage() {
             <div className="space-y-2">
               <button
                 onClick={() => nextCard()}
-                disabled={hostLoading || roomStatus !== 'playing'}
+                disabled={hostLoading || roomStatus !== 'playing' || claimInProgress}
                 className="w-full bg-blue-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 disabled:opacity-50 transition"
               >
-                ► Siguiente carta
+                {claimInProgress ? '⏳ Verificando...' : '► Siguiente carta'}
               </button>
 
               {roomStatus === 'playing' && (
@@ -161,7 +161,7 @@ export default function PlayPage() {
               )}
 
               {/* Velocidad automática */}
-              <AutoSpeedSelector onNextCard={nextCard} roomStatus={roomStatus} />
+              <AutoSpeedSelector onNextCard={nextCard} roomStatus={roomStatus} claimInProgress={claimInProgress} />
             </div>
           )}
 
@@ -224,17 +224,18 @@ export default function PlayPage() {
 }
 
 // ── Selector de velocidad automática ────────────────────────────────────────
-function AutoSpeedSelector({ onNextCard, roomStatus }: {
+function AutoSpeedSelector({ onNextCard, roomStatus, claimInProgress }: {
   onNextCard: () => Promise<boolean>
   roomStatus: string
+  claimInProgress: boolean
 }) {
   const [speed, setSpeed] = useState(0)
 
   useEffect(() => {
-    if (speed === 0 || roomStatus !== 'playing') return
+    if (speed === 0 || roomStatus !== 'playing' || claimInProgress) return
     const t = setInterval(() => { onNextCard() }, speed)
     return () => clearInterval(t)
-  }, [speed, roomStatus]) // onNextCard excluido intencionalmente para evitar reset del intervalo
+  }, [speed, roomStatus, claimInProgress]) // onNextCard excluido intencionalmente para evitar reset del intervalo
 
   const opts = [{ label: 'Manual', v: 0 }, { label: '3s', v: 3000 }, { label: '5s', v: 5000 }, { label: '10s', v: 10000 }]
 

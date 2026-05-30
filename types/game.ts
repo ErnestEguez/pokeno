@@ -90,6 +90,7 @@ export type RealtimeEventType =
   | 'game_ended'
   | 'host_changed'
   | 'slot_taken'
+  | 'claim_submitted'
   | 'claim_result'
 
 export interface RealtimeEvent {

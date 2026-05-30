@@ -10,6 +10,7 @@ interface RoomState {
   calledCards: CalledCardRow[]
   deckStatus: string | null
   hostId: string | null
+  claimInProgress: boolean
   isLoading: boolean
   error: string | null
 }
@@ -21,9 +22,11 @@ export function useRoom(roomId: string) {
     calledCards: [],
     deckStatus: null,
     hostId: null,
+    claimInProgress: false,
     isLoading: true,
     error: null,
   })
+
 
   const fetchState = useCallback(async () => {
     if (!roomId) return
@@ -31,15 +34,16 @@ export function useRoom(roomId: string) {
       const res = await fetch(`/api/rooms/${roomId}/state`)
       if (!res.ok) throw new Error('Error al cargar la sala')
       const data = await res.json()
-      setState({
+      setState(prev => ({
         room: data.room,
         slots: data.slots,
         calledCards: data.called_cards,
         deckStatus: (data.deck as RoomDeckRow | null)?.deck_status ?? null,
         hostId: data.room?.host_id ?? null,
+        claimInProgress: prev.claimInProgress,
         isLoading: false,
         error: null,
-      })
+      }))
     } catch (err) {
       setState(prev => ({ ...prev, isLoading: false, error: (err as Error).message }))
     }
@@ -95,6 +99,12 @@ export function useRoom(roomId: string) {
         hostId: new_host_id,
         room: prev.room ? { ...prev.room, host_id: new_host_id } : null,
       }))
+    },
+    claim_submitted: () => {
+      setState(prev => ({ ...prev, claimInProgress: true }))
+    },
+    claim_result: () => {
+      setState(prev => ({ ...prev, claimInProgress: false }))
     },
     slot_taken: () => {
       fetchState()

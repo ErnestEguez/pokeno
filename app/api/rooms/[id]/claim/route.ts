@@ -57,6 +57,12 @@ export async function POST(
     )
   }
 
+  // Pausar la cantada mientras se verifica el reclamo
+  await broadcastRoomEvent(id, {
+    type: 'claim_submitted',
+    payload: { slot_id, pattern },
+  })
+
   // Obtener grid del tablero del slot
   const { data: slot } = await admin
     .from('room_slots')

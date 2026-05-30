@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { RoomRow } from '@/types/database'
+import { RestartButton } from './RestartButton'
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   lobby:    { label: 'Lobby',    color: 'bg-yellow-100 text-yellow-700' },
@@ -29,6 +30,7 @@ export function RoomCard({ room }: Props) {
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
+        {room.status !== 'lobby' && <RestartButton roomId={room.id} />}
         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${color}`}>{label}</span>
         <Link
           href={target}
