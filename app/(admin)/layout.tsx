@@ -25,6 +25,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           >
             Usuarios
           </Link>
+          <Link
+            href="/dashboard/board-labels"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition"
+          >
+            Etiquetas de tableros
+          </Link>
         </nav>
         <div className="px-4 py-3 border-t border-gray-100">
           <Link href="/lobby" className="text-xs text-gray-400 hover:text-blue-600">

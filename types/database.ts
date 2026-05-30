@@ -92,6 +92,33 @@ export interface Database {
         }
         Relationships: NoRelationships
       }
+      board_labels: {
+        Row: {
+          id: string
+          board_number: number
+          tipo: 'columna' | 'fila'
+          posicion: number
+          texto: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          board_number: number
+          tipo: 'columna' | 'fila'
+          posicion: number
+          texto?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          board_number?: number
+          tipo?: 'columna' | 'fila'
+          posicion?: number
+          texto?: string
+          created_at?: string
+        }
+        Relationships: NoRelationships
+      }
       rooms: {
         Row: {
           id: string
@@ -271,12 +298,13 @@ export interface Database {
 }
 
 // Tipos de fila para uso en componentes y API routes
-export type UserRow         = Database['public']['Tables']['users']['Row']
-export type SubscriptionRow = Database['public']['Tables']['subscriptions']['Row']
+export type UserRow          = Database['public']['Tables']['users']['Row']
+export type SubscriptionRow  = Database['public']['Tables']['subscriptions']['Row']
 export type BoardTemplateRow = Database['public']['Tables']['board_templates']['Row']
-export type RoomRow         = Database['public']['Tables']['rooms']['Row']
-export type RoomSlotRow     = Database['public']['Tables']['room_slots']['Row']
-export type RoomDeckRow     = Database['public']['Tables']['room_decks']['Row']
-export type CalledCardRow   = Database['public']['Tables']['called_cards']['Row']
-export type MarkedCellRow   = Database['public']['Tables']['marked_cells']['Row']
-export type HostLogRow      = Database['public']['Tables']['host_log']['Row']
+export type BoardLabelRow    = Database['public']['Tables']['board_labels']['Row']
+export type RoomRow          = Database['public']['Tables']['rooms']['Row']
+export type RoomSlotRow      = Database['public']['Tables']['room_slots']['Row']
+export type RoomDeckRow      = Database['public']['Tables']['room_decks']['Row']
+export type CalledCardRow    = Database['public']['Tables']['called_cards']['Row']
+export type MarkedCellRow    = Database['public']['Tables']['marked_cells']['Row']
+export type HostLogRow       = Database['public']['Tables']['host_log']['Row']
