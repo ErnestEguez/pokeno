@@ -10,53 +10,57 @@ interface Props {
 }
 
 export function PlayerBoard({ grid, markedCodes, onCellClick, columnLabels, rowLabels }: Props) {
-  const hasColLabels = columnLabels && columnLabels.some(l => l)
-  const hasRowLabels = rowLabels && rowLabels.some(l => l)
+  const hasColLabels = columnLabels?.some(l => l)
+  const hasRowLabels = rowLabels?.some(l => l)
 
   return (
     <div className="w-full max-w-sm mx-auto">
 
-      {/* Etiquetas de columnas (arriba) */}
+      {/* Etiquetas de columnas — mismo grid de 5 cols que las cartas */}
       {hasColLabels && (
-        <div className="flex mb-1" style={{ paddingRight: hasRowLabels ? '6rem' : 0 }}>
-          {columnLabels!.map((label, i) => (
+        <div className="grid grid-cols-5 gap-1.5 mb-1">
+          {(columnLabels ?? []).map((label, i) => (
             <div
               key={i}
-              className="flex-1 text-center text-xs font-bold text-blue-700 bg-blue-50 border border-blue-100 rounded px-0.5 py-1 leading-tight mx-0.5"
-              style={{ minWidth: 0 }}
+              className="text-center text-xs font-bold text-blue-700 bg-blue-50 border border-blue-100 rounded px-0.5 py-1 leading-tight"
             >
-              {label || ''}
+              {label}
             </div>
           ))}
         </div>
       )}
 
-      {/* Filas del tablero con etiqueta de fila a la derecha */}
-      {grid.map((row, r) => (
-        <div key={r} className="flex items-stretch mb-1.5">
-          {/* 5 cartas de la fila */}
-          {row.map((card, c) => (
-            <div key={`${card}-${c}`} className="flex-1 mx-0.5">
-              <BoardCell
-                card={card}
-                isMarked={markedCodes.has(card)}
-                onClick={() => onCellClick(card)}
-              />
-            </div>
+      {/* Grid de cartas — igual que antes, sin tocar el tamaño */}
+      {/* Las etiquetas de fila se posicionan absolutamente a la derecha */}
+      <div className="relative">
+        <div className="grid grid-cols-5 gap-1.5">
+          {grid.flat().map((card, i) => (
+            <BoardCell
+              key={`${card}-${i}`}
+              card={card}
+              isMarked={markedCodes.has(card)}
+              onClick={() => onCellClick(card)}
+            />
           ))}
-
-          {/* Etiqueta de fila */}
-          {hasRowLabels && (
-            <div className="ml-1.5 flex items-center justify-center w-24 shrink-0">
-              {rowLabels![r] ? (
-                <span className="text-xs font-bold text-green-800 bg-green-50 border border-green-200 rounded px-1.5 py-1 text-center leading-tight w-full block">
-                  {rowLabels![r]}
-                </span>
-              ) : null}
-            </div>
-          )}
         </div>
-      ))}
+
+        {hasRowLabels && (
+          <div
+            className="absolute top-0 left-full ml-1.5 flex flex-col gap-1.5"
+            style={{ width: '5rem', height: '100%' }}
+          >
+            {(rowLabels ?? []).map((label, i) => (
+              <div key={i} className="flex-1 flex items-center">
+                {label ? (
+                  <span className="w-full text-center text-xs font-bold text-green-800 bg-green-50 border border-green-200 rounded px-1 py-0.5 leading-tight block">
+                    {label}
+                  </span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
