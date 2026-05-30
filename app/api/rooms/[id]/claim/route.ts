@@ -117,7 +117,8 @@ export async function POST(
   } catch { /* tabla pendiente de migración */ }
 
   // ¿Ya se ganaron TODOS los patrones seleccionados?
-  const allPatternsWon = winningPatterns.every(p => newCompleted.includes(p))
+  // Guard: si winning_patterns está vacío no terminar la partida (evita vacuous truth)
+  const allPatternsWon = winningPatterns.length > 0 && winningPatterns.every(p => newCompleted.includes(p))
 
   if (allPatternsWon) {
     // Terminar la ronda completa

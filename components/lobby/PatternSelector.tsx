@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ALL_PATTERNS, PATTERN_LABELS } from '@/types/game'
 import type { WinningPattern } from '@/types/game'
 
@@ -12,6 +12,12 @@ interface Props {
 
 export function PatternSelector({ roomId, currentPatterns, onSaved }: Props) {
   const [selected, setSelected] = useState<string[]>(currentPatterns)
+
+  // currentPatterns llega vacío al montar y se carga de la DB de forma asíncrona.
+  // Sin este efecto, el host ve todo desmarcado y sobreescribe los patrones guardados.
+  useEffect(() => {
+    if (currentPatterns.length > 0) setSelected(currentPatterns)
+  }, [currentPatterns])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
