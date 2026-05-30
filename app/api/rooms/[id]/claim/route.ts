@@ -34,7 +34,7 @@ export async function POST(
     .single()
 
   if (!room) return NextResponse.json({ error: 'Sala no encontrada' }, { status: 404 })
-  if (room.status !== 'playing') {
+  if (room.status !== 'playing' && room.status !== 'paused') {
     return NextResponse.json({ error: 'La partida no está en curso' }, { status: 409 })
   }
 

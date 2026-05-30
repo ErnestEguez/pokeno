@@ -36,9 +36,9 @@ export default function PlayPage() {
 
   const { room, slots, calledCards, hostId, claimInProgress, claimResult, dismissClaim, isLoading, refetch } = useRoom(id)
 
-  // Polling de respaldo cada 4 s
+  // Polling cada 1 s — detecta pausa por POKENO en ~1 segundo
   useEffect(() => {
-    const t = setInterval(() => refetch(), 4000)
+    const t = setInterval(() => refetch(), 1000)
     return () => clearInterval(t)
   }, [refetch])
 
@@ -62,7 +62,11 @@ export default function PlayPage() {
 
   const myGrid      = mySlot?.board_template?.card_grid ?? null
   const mySlotId    = mySlot?.id ?? ''
-  const myBoardNum  = mySlot?.board_template?.board_number ?? null
+  // Fallback: si board_number es null en la DB, extrae el número del display_name ("Tablero 2" → 2)
+  const myBoardNum: number | null = mySlot?.board_template?.board_number
+    ?? (mySlot?.board_template?.display_name?.match(/\d+/)?.[0]
+        ? parseInt(mySlot!.board_template!.display_name!.match(/\d+/)![0], 10)
+        : null)
 
   const { markedCodes, markCell } = useBoard(mySlotId, id, myGrid)
 
@@ -226,7 +230,11 @@ export default function PlayPage() {
         <ClaimResultBanner
           result={claimResult}
           isHost={isHost}
-          onContinue={dismissClaim}
+          onContinue={() => {
+            dismissClaim()
+            // Si el host continúa y la sala sigue pausada, reanudarla
+            if (isHost && !claimResult.game_over) resume()
+          }}
         />
       )}
     </div>
