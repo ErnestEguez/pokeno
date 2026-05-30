@@ -112,6 +112,9 @@ export function useRoom(roomId: string) {
     claim_submitted: () => {
       setState(prev => ({ ...prev, claimInProgress: true }))
     },
+    claim_cancelled: () => {
+      setState(prev => ({ ...prev, claimInProgress: false, claimResult: null }))
+    },
     claim_result: (payload) => {
       const result = payload as unknown as ClaimResultPayload
       if (result.valid) {

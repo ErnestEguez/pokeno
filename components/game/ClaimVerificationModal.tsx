@@ -9,9 +9,10 @@ interface Props {
   slotId: string
   availablePatterns: string[]
   onClose: () => void
+  onClaimSuccess: () => void
 }
 
-export function ClaimVerificationModal({ roomId, slotId, availablePatterns, onClose }: Props) {
+export function ClaimVerificationModal({ roomId, slotId, availablePatterns, onClose, onClaimSuccess }: Props) {
   const [selectedPattern, setSelectedPattern] = useState<string>(availablePatterns[0] ?? '')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{ valid: boolean; message: string } | null>(null)
@@ -27,8 +28,9 @@ export function ClaimVerificationModal({ roomId, slotId, availablePatterns, onCl
       })
       const data = await res.json()
       if (data.valid) {
-        // El resultado válido se muestra a todos via ClaimResultBanner; cerrar este modal
-        onClose()
+        // El resultado válido se muestra a todos via ClaimResultBanner
+        // Usar onClaimSuccess para NO reanudar la cantada al cerrar
+        onClaimSuccess()
         return
       } else {
         setResult({ valid: false, message: 'El patrón no está completo aún. ¡Sigue marcando!' })

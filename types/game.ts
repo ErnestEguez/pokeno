@@ -91,6 +91,7 @@ export type RealtimeEventType =
   | 'host_changed'
   | 'slot_taken'
   | 'claim_submitted'
+  | 'claim_cancelled'
   | 'claim_result'
 
 export interface RealtimeEvent {

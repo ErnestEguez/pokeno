@@ -11,12 +11,35 @@ interface Props {
 
 export function ClaimButton({ roomId, slotId, availablePatterns }: Props) {
   const [showModal, setShowModal] = useState(false)
+  const [claimSucceeded, setClaimSucceeded] = useState(false)
+
+  function handleOpen() {
+    setClaimSucceeded(false)
+    // Pausa la cantada inmediatamente al tocar el botón
+    fetch(`/api/rooms/${roomId}/claim-intent`, { method: 'POST' }).catch(() => {})
+    setShowModal(true)
+  }
+
+  function handleClose() {
+    // Si no hubo reclamo exitoso, reanudar la cantada
+    if (!claimSucceeded) {
+      fetch(`/api/rooms/${roomId}/claim-cancel`, { method: 'POST' }).catch(() => {})
+    }
+    setClaimSucceeded(false)
+    setShowModal(false)
+  }
+
+  function handleClaimSuccess() {
+    // Reclamo válido — el banner lo muestra a todos; el host reanuda con "Continuar"
+    setClaimSucceeded(true)
+    setShowModal(false)
+  }
 
   return (
     <>
       <button
-        onClick={() => setShowModal(true)}
-        className="w-full bg-yellow-500 text-white font-black text-xl py-4 rounded-2xl shadow-lg hover:bg-yellow-600 active:scale-95 transition-all"
+        onClick={handleOpen}
+        className="w-full bg-orange-500 text-white font-black text-xl py-4 rounded-2xl shadow-lg hover:bg-orange-600 active:scale-95 transition-all"
       >
         ¡POKENO!
       </button>
@@ -26,7 +49,8 @@ export function ClaimButton({ roomId, slotId, availablePatterns }: Props) {
           roomId={roomId}
           slotId={slotId}
           availablePatterns={availablePatterns}
-          onClose={() => setShowModal(false)}
+          onClose={handleClose}
+          onClaimSuccess={handleClaimSuccess}
         />
       )}
     </>
