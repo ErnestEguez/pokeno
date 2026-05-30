@@ -1,18 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { PATTERN_LABELS, ALL_PATTERNS } from '@/types/game'
+import { PATTERN_LABELS } from '@/types/game'
 import type { WinningPattern } from '@/types/game'
 
 interface Props {
   roomId: string
   slotId: string
   availablePatterns: string[]
+  markedCodes: Set<string>
   onClose: () => void
   onClaimSuccess: () => void
 }
 
-export function ClaimVerificationModal({ roomId, slotId, availablePatterns, onClose, onClaimSuccess }: Props) {
+export function ClaimVerificationModal({ roomId, slotId, availablePatterns, markedCodes, onClose, onClaimSuccess }: Props) {
   const [selectedPattern, setSelectedPattern] = useState<string>(availablePatterns[0] ?? '')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{ valid: boolean; message: string } | null>(null)
@@ -24,16 +25,20 @@ export function ClaimVerificationModal({ roomId, slotId, availablePatterns, onCl
       const res = await fetch(`/api/rooms/${roomId}/claim`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slot_id: slotId, pattern: selectedPattern }),
+        // Se envían las marcas del cliente para que la validación no dependa
+        // de que el DB tenga los marked_cells sincronizados
+        body: JSON.stringify({
+          slot_id: slotId,
+          pattern: selectedPattern,
+          marked_codes: [...markedCodes],
+        }),
       })
       const data = await res.json()
       if (data.valid) {
-        // El resultado válido se muestra a todos via ClaimResultBanner
-        // Usar onClaimSuccess para NO reanudar la cantada al cerrar
         onClaimSuccess()
         return
       } else {
-        setResult({ valid: false, message: 'El patrón no está completo aún. ¡Sigue marcando!' })
+        setResult({ valid: false, message: data.error ?? 'El patrón no está completo aún. ¡Sigue marcando!' })
       }
     } catch {
       setResult({ valid: false, message: 'Error de conexión' })
@@ -81,16 +86,9 @@ export function ClaimVerificationModal({ roomId, slotId, availablePatterns, onCl
             </>
           ) : (
             <div className="text-center space-y-4">
-              <div className={`text-5xl ${result.valid ? '🎉' : '😢'}`}>
-                {result.valid ? '🎉' : '😢'}
-              </div>
-              <p className={`text-lg font-semibold ${result.valid ? 'text-green-700' : 'text-red-700'}`}>
-                {result.message}
-              </p>
-              <button
-                onClick={onClose}
-                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
-              >
+              <div className="text-5xl">😢</div>
+              <p className="text-lg font-semibold text-red-700">{result.message}</p>
+              <button onClick={onClose} className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
                 Cerrar
               </button>
             </div>

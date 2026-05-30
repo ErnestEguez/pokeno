@@ -7,9 +7,10 @@ interface Props {
   roomId: string
   slotId: string
   availablePatterns: string[]
+  markedCodes: Set<string>
 }
 
-export function ClaimButton({ roomId, slotId, availablePatterns }: Props) {
+export function ClaimButton({ roomId, slotId, availablePatterns, markedCodes }: Props) {
   const [showModal, setShowModal] = useState(false)
   const [claimSucceeded, setClaimSucceeded] = useState(false)
   // Rastrear si ESTE cliente fue quien pausó la sala
@@ -56,6 +57,7 @@ export function ClaimButton({ roomId, slotId, availablePatterns }: Props) {
           roomId={roomId}
           slotId={slotId}
           availablePatterns={availablePatterns}
+          markedCodes={markedCodes}
           onClose={handleClose}
           onClaimSuccess={handleClaimSuccess}
         />

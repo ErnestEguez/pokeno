@@ -18,11 +18,11 @@ export async function POST(
     return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   }
 
-  let body: { slot_id?: string; pattern?: string }
+  let body: { slot_id?: string; pattern?: string; marked_codes?: string[] }
   try { body = await request.json() }
   catch { return NextResponse.json({ error: 'Cuerpo inválido' }, { status: 400 }) }
 
-  const { slot_id, pattern } = body
+  const { slot_id, pattern, marked_codes } = body
   if (!slot_id || !pattern) {
     return NextResponse.json({ error: 'slot_id y pattern son requeridos' }, { status: 400 })
   }
@@ -73,20 +73,23 @@ export async function POST(
 
   if (!slot) return NextResponse.json({ error: 'Slot no encontrado' }, { status: 404 })
 
-  // Obtener celdas marcadas del slot (guardadas en DB)
+  // Obtener celdas marcadas: usar las del cliente (más confiables) y complementar con DB
   const { data: markedCells } = await admin
     .from('marked_cells')
     .select('card_code')
     .eq('slot_id', slot_id)
     .eq('is_marked', true)
 
-  const markedCodes = new Set((markedCells ?? []).map(c => c.card_code))
+  const dbCodes = (markedCells ?? []).map(c => c.card_code)
+  const clientCodes = Array.isArray(marked_codes) ? (marked_codes as string[]) : []
+  // Unión: marcas del cliente + DB para no perder nada por problemas de sincronización
+  const markedCodesSet = new Set([...clientCodes, ...dbCodes])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const grid = ((slot as any).board_template?.card_grid) as BoardGrid | undefined
   if (!grid) return NextResponse.json({ error: 'Grid no disponible' }, { status: 500 })
 
-  const valid = checkPattern(grid, markedCodes, pattern as WinningPattern)
+  const valid = checkPattern(grid, markedCodesSet, pattern as WinningPattern)
 
   if (!valid) {
     await broadcastRoomEvent(id, {

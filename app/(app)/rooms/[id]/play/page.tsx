@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useRoom } from '@/hooks/useRoom'
 import { useBoard } from '@/hooks/useBoard'
@@ -47,7 +47,17 @@ export default function PlayPage() {
     roomId: id, userId, hostId,
   })
 
-  const { enabled: audioOn, toggle: toggleAudio, announce } = useCardAnnouncer()
+  const { enabled: audioOn, toggle: toggleAudio, announce, announceWinner } = useCardAnnouncer()
+
+  // Anunciar nuevos ganadores detectados por polling
+  const prevWinnersLen = useRef(0)
+  useEffect(() => {
+    if (winners.length > prevWinnersLen.current) {
+      const newest = winners[winners.length - 1]
+      announceWinner(newest.winner_label, newest.pattern)
+    }
+    prevWinnersLen.current = winners.length
+  }, [winners, announceWinner])
 
   const latestCard = calledCards.length > 0
     ? calledCards[calledCards.length - 1].card_code
@@ -213,7 +223,7 @@ export default function PlayPage() {
                 rowLabels={rowLabels}
               />
               <div className="mt-3">
-                <ClaimButton roomId={id} slotId={mySlotId} availablePatterns={patterns} />
+                <ClaimButton roomId={id} slotId={mySlotId} availablePatterns={patterns} markedCodes={markedCodes} />
               </div>
             </>
           ) : (
