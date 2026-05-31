@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AppNavbar } from '@/components/AppNavbar'
+import { BillenniumBranding } from '@/components/BillenniumBranding'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -17,15 +18,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const subscription = (userData?.subscriptions as any) as { games_total: number; games_used: number } | null
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <AppNavbar
         displayName={userData?.display_name ?? user.email ?? 'Usuario'}
         gamesTotal={subscription?.games_total ?? 0}
         gamesUsed={subscription?.games_used ?? 0}
       />
-      <main className="max-w-5xl mx-auto px-4 py-6">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
         {children}
       </main>
+      <BillenniumBranding />
     </div>
   )
 }
