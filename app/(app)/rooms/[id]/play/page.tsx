@@ -12,6 +12,7 @@ import { CardHistory } from '@/components/game/CardHistory'
 import { PatternIndicator } from '@/components/game/PatternIndicator'
 import { ClaimButton } from '@/components/game/ClaimButton'
 import { ClaimResultBanner } from '@/components/game/ClaimResultBanner'
+import { EndGameModal } from '@/components/game/EndGameModal'
 import { WinnersList } from '@/components/game/WinnersList'
 import { TakeHostButton } from '@/components/host/TakeHostButton'
 import { createClient } from '@/lib/supabase/client'
@@ -48,6 +49,8 @@ export default function PlayPage() {
   })
 
   const { enabled: audioOn, toggle: toggleAudio, announce, announceWinner } = useCardAnnouncer()
+  const [showEndGameDialog, setShowEndGameDialog] = useState(false)
+  const [endGameLoading, setEndGameLoading] = useState(false)
 
   // Anunciar nuevos ganadores detectados por polling
   const prevWinnersLen = useRef(0)
@@ -101,13 +104,28 @@ export default function PlayPage() {
       .catch(() => {})
   }, [myBoardNum])
 
-  // Redirigir al resultado solo si ya se jugó (al menos 1 carta cantada)
-  // — evita falsa redirección con estado 'finished' del juego anterior
+  // Cuando el host reinicia, volver al lobby con todos los jugadores
   useEffect(() => {
-    if (room?.status === 'finished' && calledCards.length > 0) {
-      router.push(`/rooms/${id}/result`)
+    if (room?.status === 'lobby') {
+      router.push(`/rooms/${id}/lobby`)
     }
-  }, [room?.status, calledCards.length, id, router])
+  }, [room?.status, id, router])
+
+  async function handlePlayAgain() {
+    setEndGameLoading(true)
+    try {
+      await fetch(`/api/rooms/${id}/restart`, { method: 'POST' })
+      // La redirección la hará el useEffect anterior al detectar status='lobby'
+    } finally {
+      setEndGameLoading(false)
+      setShowEndGameDialog(false)
+    }
+  }
+
+  function handleCloseGame() {
+    setShowEndGameDialog(false)
+    router.push('/lobby')
+  }
 
   if (isLoading || !userId) {
     return <div className="text-center py-16 text-gray-400">Cargando partida...</div>
@@ -155,29 +173,40 @@ export default function PlayPage() {
           {/* Controles del host */}
           {isHost && (
             <div className="space-y-2">
-              <button
-                onClick={() => nextCard()}
-                disabled={hostLoading || roomStatus !== 'playing' || claimInProgress}
-                className="w-full bg-blue-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 disabled:opacity-50 transition"
-              >
-                {claimInProgress ? '⏳ Verificando...' : '► Siguiente carta'}
-              </button>
-
-              {roomStatus === 'playing' && (
-                <button onClick={() => pause()} disabled={hostLoading}
-                  className="w-full border border-yellow-500 text-yellow-700 py-2 rounded-xl text-sm hover:bg-yellow-50 disabled:opacity-50">
-                  ⏸ Pausar
+              {roomStatus === 'finished' ? (
+                <button
+                  onClick={() => setShowEndGameDialog(true)}
+                  className="w-full bg-red-600 text-white py-3 rounded-xl font-black text-sm hover:bg-red-700 transition"
+                >
+                  🏁 Cerrar Partida
                 </button>
-              )}
-              {roomStatus === 'paused' && (
-                <button onClick={() => resume()} disabled={hostLoading}
-                  className="w-full bg-green-600 text-white py-2 rounded-xl text-sm hover:bg-green-700 disabled:opacity-50">
-                  ▶ Reanudar
-                </button>
-              )}
+              ) : (
+                <>
+                  <button
+                    onClick={() => nextCard()}
+                    disabled={hostLoading || roomStatus !== 'playing' || claimInProgress}
+                    className="w-full bg-blue-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 disabled:opacity-50 transition"
+                  >
+                    {claimInProgress ? '⏳ Verificando...' : '► Siguiente carta'}
+                  </button>
 
-              {/* Velocidad automática */}
-              <AutoSpeedSelector onNextCard={nextCard} roomStatus={roomStatus} claimInProgress={claimInProgress} />
+                  {roomStatus === 'playing' && (
+                    <button onClick={() => pause()} disabled={hostLoading}
+                      className="w-full border border-yellow-500 text-yellow-700 py-2 rounded-xl text-sm hover:bg-yellow-50 disabled:opacity-50">
+                      ⏸ Pausar
+                    </button>
+                  )}
+                  {roomStatus === 'paused' && (
+                    <button onClick={() => resume()} disabled={hostLoading}
+                      className="w-full bg-green-600 text-white py-2 rounded-xl text-sm hover:bg-green-700 disabled:opacity-50">
+                      ▶ Reanudar
+                    </button>
+                  )}
+
+                  {/* Velocidad automática */}
+                  <AutoSpeedSelector onNextCard={nextCard} roomStatus={roomStatus} claimInProgress={claimInProgress} />
+                </>
+              )}
             </div>
           )}
 
@@ -223,16 +252,23 @@ export default function PlayPage() {
                 rowLabels={rowLabels}
               />
               <div className="mt-3">
-                <ClaimButton
-                  roomId={id}
-                  slotId={mySlotId}
-                  availablePatterns={patterns}
-                  markedCodes={markedCodes}
-                  onWinAnnounce={(winnerLabel, pattern) => {
-                    announceWinner(winnerLabel, pattern)
-                    addLocalWinner(pattern, winnerLabel)
-                  }}
-                />
+                {roomStatus === 'finished' ? (
+                  <div className="w-full bg-gray-100 text-gray-500 font-semibold text-center py-4 rounded-2xl">
+                    🏁 Partida terminada
+                    {!isHost && <p className="text-xs font-normal mt-1">Esperando al anfitrión...</p>}
+                  </div>
+                ) : (
+                  <ClaimButton
+                    roomId={id}
+                    slotId={mySlotId}
+                    availablePatterns={patterns}
+                    markedCodes={markedCodes}
+                    onWinAnnounce={(winnerLabel, pattern) => {
+                      announceWinner(winnerLabel, pattern)
+                      addLocalWinner(pattern, winnerLabel)
+                    }}
+                  />
+                )}
               </div>
             </>
           ) : (
@@ -257,9 +293,17 @@ export default function PlayPage() {
           isHost={isHost}
           onContinue={() => {
             dismissClaim()
-            // Si el host continúa y la sala sigue pausada, reanudarla
             if (isHost && !claimResult.game_over) resume()
           }}
+        />
+      )}
+
+      {/* Modal cierre de partida — solo visible para el host */}
+      {showEndGameDialog && (
+        <EndGameModal
+          loading={endGameLoading}
+          onPlayAgain={handlePlayAgain}
+          onClose={handleCloseGame}
         />
       )}
     </div>
