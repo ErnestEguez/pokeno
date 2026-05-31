@@ -9,7 +9,7 @@ export function BillenniumBranding() {
         {/* Logo a colores */}
         <div className="flex-shrink-0">
           <Image
-            src="/billennium-logo.png"
+            src="/billennium.jpg"
             alt="Billennium System"
             width={44}
             height={44}
