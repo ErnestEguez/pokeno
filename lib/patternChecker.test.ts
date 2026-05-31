@@ -35,8 +35,6 @@ describe('straight', () => {
 
 // ────────────────────────────────────────────────────────────
 describe('royal', () => {
-  // El grid tiene A♠, J♦, Q♣, K♠; falta 10♠ para royal de picas completa
-  // Construimos un grid secundario que sí tenga royal completa
   const GRID_ROYAL: BoardGrid = [
     ['A♠', '10♠', 'J♠', 'Q♠', 'K♠'],
     ['2♥', '3♦', '4♣', '5♠', '6♥'],
@@ -44,9 +42,24 @@ describe('royal', () => {
     ['Q♣', 'K♥', 'A♦', '2♣', '3♠'],
     ['4♥', '5♦', '6♣', '7♠', '8♥'],
   ]
+  // Columna 2 del estilo real (ej. Tablero 4): 5♣,6♣,7♣,8♣,9♣ — escalera en tréboles
+  const GRID_REAL: BoardGrid = [
+    ['9♠', '9♥', '9♣', '9♦', '3♥'],
+    ['8♠', '8♥', '8♣', 'A♦', 'A♥'],
+    ['5♥', '6♥', '5♣', '5♦', '4♥'],
+    ['7♠', 'J♠', '7♣', '2♦', '2♥'],
+    ['6♠', '7♥', '6♣', '4♦', 'Q♥'],
+  ]
   test('A♠,10♠,J♠,Q♠,K♠ marcados → true', () => {
     assert.equal(
       checkPattern(GRID_ROYAL, marked('A♠','10♠','J♠','Q♠','K♠'), 'royal'),
+      true
+    )
+  })
+  test('escalera real en tréboles 5-9 (como en tableros reales) → true', () => {
+    // Col 2 de GRID_REAL: 9♣,8♣,5♣,7♣,6♣ = 5,6,7,8,9 de tréboles
+    assert.equal(
+      checkPattern(GRID_REAL, marked('9♣','8♣','5♣','7♣','6♣'), 'royal'),
       true
     )
   })
@@ -83,6 +96,20 @@ describe('flush_row', () => {
     assert.equal(
       checkPattern(GRID, marked('A♠','2♥','3♦','4♣','5♠'), 'flush_row'),
       false
+    )
+  })
+  test('columna completa del mismo palo → true (caso real: col 3 ♦)', () => {
+    // Tablero con col 3 toda de diamantes: 9♦,A♦,5♦,2♦,4♦
+    const GRID_COL: BoardGrid = [
+      ['9♠', '9♥', '9♣', '9♦', '3♥'],
+      ['8♠', '8♥', '8♣', 'A♦', 'A♥'],
+      ['5♥', '6♥', '5♣', '5♦', '4♥'],
+      ['7♠', 'J♠', '7♣', '2♦', '2♥'],
+      ['6♠', '7♥', '6♣', '4♦', 'Q♥'],
+    ]
+    assert.equal(
+      checkPattern(GRID_COL, marked('9♦','A♦','5♦','2♦','4♦'), 'flush_row'),
+      true
     )
   })
   test('fila de mismo palo pero incompleta → false', () => {

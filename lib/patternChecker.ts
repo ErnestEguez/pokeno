@@ -61,18 +61,41 @@ function checkStraight(cards: ParsedCard[]): boolean {
 }
 
 function checkRoyal(cards: ParsedCard[]): boolean {
-  const ROYAL_VALUES = new Set(['A', '10', 'J', 'Q', 'K'])
+  // Escalera del mismo palo: cualquier 5 consecutivas del mismo palo
+  // (no solo A-10-J-Q-K; los tableros tienen escaleras como 5-6-7-8-9)
   for (const suit of ['♠', '♥', '♦', '♣']) {
-    const suitVals = new Set(cards.filter(c => c.suit === suit).map(c => c.value))
-    if ([...ROYAL_VALUES].every(v => suitVals.has(v))) return true
+    const suitNums = [...new Set(
+      cards
+        .filter(c => c.suit === suit)
+        .flatMap(c => c.num === 1 ? [1, 14] : [c.num])   // As vale 1 y 14
+    )].sort((a, b) => a - b)
+
+    if (suitNums.length < 5) continue
+
+    for (let i = 0; i <= suitNums.length - 5; i++) {
+      let ok = true
+      for (let j = 0; j < 4; j++) {
+        if (suitNums[i + j + 1] !== suitNums[i + j] + 1) { ok = false; break }
+      }
+      if (ok) return true
+    }
   }
   return false
 }
 
 function checkFlushRow(grid: BoardGrid, markedCodes: Set<string>): boolean {
+  // Verificar filas (horizontal)
   for (const row of grid) {
     if (!row.every(code => markedCodes.has(code))) continue
     const suits = new Set(row.map(code => code.slice(-1)))
+    if (suits.size === 1) return true
+  }
+  // Verificar columnas (vertical) — en los tableros reales las cartas del
+  // mismo palo están en columnas (cols 2, 3, 4), no en filas
+  for (let c = 0; c < 5; c++) {
+    const colCodes = grid.map(row => row[c])
+    if (!colCodes.every(code => markedCodes.has(code))) continue
+    const suits = new Set(colCodes.map(code => code.slice(-1)))
     if (suits.size === 1) return true
   }
   return false
